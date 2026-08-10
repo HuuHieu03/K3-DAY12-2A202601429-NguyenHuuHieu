@@ -44,7 +44,12 @@ class Lifecycle:
         tham số này. Không làm gì nặng ở đây (không gọi mạng, không ghi file)
         — handler chạy xen giữa bytecode.
         """
-        raise NotImplementedError("TODO (CP4): cài đặt request_shutdown")
+        # Đánh dấu quá trình đang tắt dần
+        self.shutting_down = True
+        # Gọi lại handler cũ nếu đã lưu
+        previous = self._previous.get(signum)
+        if callable(previous):
+            previous(signum, frame)
 
     def install(self) -> None:
         """Đăng ký handler cho SIGTERM và SIGINT, nhớ lại handler cũ.
@@ -56,7 +61,12 @@ class Lifecycle:
 
         SIGTERM: orchestrator yêu cầu tắt. SIGINT: bạn bấm Ctrl+C.
         """
-        raise NotImplementedError("TODO (CP4): cài đặt install")
+        # Đăng ký handler cho SIGTERM và SIGINT, lưu handler cũ
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            # Lưu handler cũ nếu có
+            self._previous[sig] = signal.getsignal(sig)
+            # Đăng ký handler mới
+            signal.signal(sig, self.request_shutdown)
 
 
 # Một instance dùng chung cho cả app

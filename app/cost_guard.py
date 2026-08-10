@@ -36,7 +36,19 @@ class CostGuard:
         Key chưa tồn tại → Redis trả None → hàm này phải trả ``0.0``.
         Nhớ ép kiểu ``float(...)`` vì Redis trả về chuỗi.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt spent")
+    def spent(self, user_id: str, month: str | None = None) -> float:
+        """Return total spent for user in given month (default current).
+
+        If the key does not exist, returns 0.0.
+        """
+        key = self._key(user_id, month)
+        val = self.client.get(key)
+        if val is None:
+            return 0.0
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return 0.0
 
     def check(
         self,
@@ -44,20 +56,26 @@ class CostGuard:
         estimated_cost: float = 0.0,
         month: str | None = None,
     ) -> None:
-        """Cho qua nếu còn ngân sách, ngược lại raise 402.
+        """Raise 402 if adding estimated_cost would exceed monthly budget.
 
-        TODO (CP3): nếu ``spent(user_id) + estimated_cost > self.budget``
-        → raise ``HTTPException(status_code=402, detail="monthly budget exceeded")``.
-        402 = Payment Required, đúng ngữ nghĩa cho tình huống hết ngân sách.
+        ``self.budget`` is the monthly budget in USD. If ``budget`` <= 0, no limit.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt check")
+        if self.budget <= 0:
+            return
+        current = self.spent(user_id, month)
+        if current + estimated_cost > self.budget:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="monthly budget exceeded",
+            )
 
     def record(self, user_id: str, cost: float, month: str | None = None) -> float:
-        """Cộng dồn chi phí vừa phát sinh, trả về tổng mới.
+        """Add ``cost`` to the user's total for the month and return new total.
 
-        TODO (CP3):
-          1. ``total = self.client.incrbyfloat(key, cost)``
-          2. ``self.client.expire(key, KEY_TTL_SECONDS)``
-          3. ``return float(total)``
+        The Redis key expires after ``KEY_TTL_SECONDS`` to keep data bounded.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt record")
+        key = self._key(user_id, month)
+        total = self.client.incrbyfloat(key, cost)
+        # Ensure the key has a TTL so old months eventually disappear
+        self.client.expire(key, KEY_TTL_SECONDS)
+        return float(total)

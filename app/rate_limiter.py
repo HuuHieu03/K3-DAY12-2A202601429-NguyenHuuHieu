@@ -22,38 +22,40 @@ class RateLimiter:
         self.client = client
         self.limit = limit_per_minute
 
-    @staticmethod
-    def _key(user_id: str) -> str:
-        """CHO SẴN — mỗi user một key riêng."""
+    def _key(self, user_id: str) -> str:
+        """Redis key for a user's rate‑limit sorted set."""
         return f"ratelimit:{user_id}"
 
     def hit_count(self, user_id: str, now: float | None = None) -> int:
-        """Số request của user trong ``WINDOW_SECONDS`` giây gần nhất.
+        """Return the number of requests made by *user_id* in the last WINDOW_SECONDS.
 
-        TODO (CP3):
-          1. ``now = now if now is not None else time.time()``
-          2. Xóa các entry cũ hơn cửa sổ:
-             ``self.client.zremrangebyscore(key, 0, now - WINDOW_SECONDS)``
-          3. Trả về ``self.client.zcard(key)``
+        This method only cleans up old entries and returns the current count.
+        It does **not** record a new request.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt hit_count")
+        now = now if now is not None else time.time()
+        key = self._key(user_id)
+        # Remove entries older than the sliding window
+        self.client.zremrangebyscore(key, 0, now - WINDOW_SECONDS)
+        # Return current count
+        return self.client.zcard(key)
 
     def check(self, user_id: str, now: float | None = None) -> None:
-        """Cho qua nếu còn quota, ngược lại raise 429.
+        """Enforce the rate limit.
 
-        TODO (CP3):
-          1. ``now = now if now is not None else time.time()``
-          2. Gọi ``self.hit_count(user_id, now)``.
-          3. Nếu số đó ``>= self.limit`` → raise
-             ``HTTPException(status_code=429, detail="rate limit exceeded",
-                             headers={"Retry-After": str(WINDOW_SECONDS)})``
-          4. Chưa vượt → ghi nhận request này:
-             ``self.client.zadd(key, {f"{now}:{uuid.uuid4().hex}": now})``
-             (member phải là chuỗi DUY NHẤT, nếu không hai request cùng
-             timestamp sẽ ghi đè nhau và bạn đếm thiếu)
-             rồi ``self.client.expire(key, WINDOW_SECONDS)`` để key tự dọn.
-
-        Lưu ý thứ tự: **kiểm tra trước, ghi nhận sau**. Ghi trước rồi mới đếm
-        sẽ chặn nhầm ngay ở request thứ ``limit``.
+        Raises ``HTTPException`` with status 429 if the request would exceed the
+        configured limit. Otherwise records the request in Redis.
         """
-        raise NotImplementedError("TODO (CP3): cài đặt check")
+        now = now if now is not None else time.time()
+        key = self._key(user_id)
+        # Refresh window and get current count
+        count = self.hit_count(user_id, now)
+        if count >= self.limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="rate limit exceeded",
+                headers={"Retry-After": str(WINDOW_SECONDS)},
+            )
+        # Record this request with a unique member to avoid collisions
+        member = f"{now}:{uuid.uuid4().hex}"
+        self.client.zadd(key, {member: now})
+        self.client.expire(key, WINDOW_SECONDS)
