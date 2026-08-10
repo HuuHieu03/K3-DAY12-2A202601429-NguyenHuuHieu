@@ -29,6 +29,7 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -s /bin/bash appuser
 
 # Copy only the installed packages and application code from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /app /app
 
 # Ensure non‑root ownership

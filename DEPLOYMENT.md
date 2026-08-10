@@ -9,32 +9,32 @@
 
 ## Thông Tin Học Viên
 
-| Mục | Nội dung |
-|-----|----------|
-| Họ và tên | Nguyen Huu Hieu |
-| Mã học viên | 202601429 |
-| Repo | https://github.com/HuuHieu03/K3-DAY12-2A202601429-NguyenHuuHieu |
+| Mục           | Nội dung                                                       |
+| -------------- | --------------------------------------------------------------- |
+| Họ và tên   | Nguyen Huu Hieu                                                 |
+| Mã học viên | 202601429                                                       |
+| Repo           | https://github.com/HuuHieu03/K3-DAY12-2A202601429-NguyenHuuHieu |
 
 ## Service
 
-| Mục | Nội dung |
-|-----|----------|
-| Public URL | https://day12-agent.railway.app |
-| Platform | Railway |
-| Ngày deploy | 2026-08-10 |
+| Mục         | Nội dung                                               |
+| ------------ | ------------------------------------------------------- |
+| Public URL   | https://k3-day12-2a202601429-nguyenhuuhieu.onrender.com |
+| Platform     | Railway                                                 |
+| Ngày deploy | 2026-08-10                                              |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
 Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 
-| Biến | Đã set | Ghi chú |
-|------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | Redis add-on of platform / Upstash / ... |
-| `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
-| `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
-| `LOG_LEVEL` | ✅ | INFO |
+| Biến                     | Đã set | Ghi chú                                      |
+| ------------------------- | -------- | --------------------------------------------- |
+| `PORT`                  | ✅       | platform tự gán                             |
+| `AGENT_API_KEY`         | ✅       | đặt trong dashboard, không nằm trong repo |
+| `REDIS_URL`             | ✅       | Redis add-on of platform / Upstash / ...      |
+| `RATE_LIMIT_PER_MINUTE` | ✅       | 10                                            |
+| `MONTHLY_BUDGET_USD`    | ✅       | 10.0                                          |
+| `LOG_LEVEL`             | ✅       | INFO                                          |
 
 ## Lệnh Kiểm Tra
 
