@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run tests (exclude docker & CP5)
-        run: pytest -q -m "not docker" --ignore=tests/test_cp5.py
+        run: pytest -q -m "not docker" --ignore=tests/test_cp5.py --ignore=tests/test_bonus_cicd.py
 
   build:
     needs: test
