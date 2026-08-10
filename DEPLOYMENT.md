@@ -74,7 +74,24 @@ done; echo
 Dán output của các lệnh trên vào đây:
 
 ```
-(output)
+# 1. Liveness
+HTTP 200
+{"status":"ok","service":"day12-agent","version":"1.0.0"}
+
+# 2. Readiness
+HTTP 200
+{"status":"ready","redis":true}
+
+# 3. Không có API key
+HTTP 401
+{"detail":"invalid or missing API key"}
+
+# 4. Có API key
+HTTP 200
+{"answer":"Câu hỏi hay. Deploy là gì thường được giải quyết bằng cách chuẩn hóa môi trường chạy: cùng một image chạy giống nhau ở laptop và trên cloud. (Mình đang nhớ 2 lượt trao đổi trước đó.)","user_id":"sv-test","history_length":2,"cost_usd":3.315e-05,"tokens":{"in":41,"out":45}}
+
+# 5. Rate limit (15 requests)
+200 200 200 200 200 200 200 200 429 429 429 429 429 429 429
 ```
 
 ## Ảnh Chụp Màn Hình
